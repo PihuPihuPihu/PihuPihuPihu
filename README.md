@@ -17,7 +17,7 @@ I'd love to connect 🤍
 ## 🏆 GitHub Trophies
 ![](https://github-profile-trophy.vercel.app/?username=PihuPihuPihu&theme=radical&no-frame=true&no-bg=true&margin-w=4)
 
-### ✍️ Random Dev Quote
+### ✍️ My Fav Quote
 ![](https://quotes-github-readme.vercel.app/api?type=horizontal&theme=radical)
 
 ---
