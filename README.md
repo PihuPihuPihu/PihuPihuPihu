@@ -23,21 +23,17 @@ I'd love to connect 🤍
 ---
 [![](https://visitcount.itsvg.in/api?id=PihuPihuPihu&icon=0&color=0)](https://visitcount.itsvg.in)
 
-### 🌸 My Sakura Cat Space
-<div align="center">
-  <!-- This generates a beautiful pink header card with your username -->
-  <img src="https://vercel.app" />
-</div>
+# 🌸 Welcome to My Profile! 🌸
 
 <div align="center">
-  <!-- This is the actual direct link to the animated walking pixel cat -->
-  <img src="https://giphy.com" width="120" alt="Cute running cat">
+  <!-- This links directly to your newly named stars-rainbows.gif file -->
+  <img src="./stars-rainbows.gif" width="150" alt="Cute Sakura Cat Grid">
 </div>
 
 <br />
 
 <div align="center">
-  <!-- This loads your custom sakura-themed GitHub statistics tracking card -->
+  <!-- Your matching sakura analytics tracker card -->
   <img src="https://vercel.app" alt="Pihu's GitHub Stats" />
 </div>
 
