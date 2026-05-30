@@ -23,11 +23,16 @@ I'd love to connect 🤍
 ---
 [![](https://visitcount.itsvg.in/api?id=PihuPihuPihu&icon=0&color=0)](https://visitcount.itsvg.in)
 
-### My Contribution Snake
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../output/github-contribution-grid-snake-dark.svg?v=2">
-  <img alt="github contribution grid snake" src="../output/github-contribution-grid-snake.svg?v=2">
-</picture>
+### 🌸 My Sakura Cat Space
+<div align="center">
+  <img src="https://vercel.app" />
+</div>
+
+<!-- This puts an animated running pixel cat right under your header -->
+<div align="center">
+  <img src="https://giphy.com" width="150" alt="Cute running cat">
+</div>
+
 
 
 
