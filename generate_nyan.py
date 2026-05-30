@@ -1,63 +1,122 @@
 #!/usr/bin/env python3
 """
-generate_nyan.py — Nyan Cat eats your GitHub contributions!
-
+generate_nyan.py — Sparkle cat eats your GitHub contributions!
+ 
 Usage:
     pip install Pillow requests
     export GITHUB_TOKEN=ghp_your_token_here
     python generate_nyan.py <github_username>
     python generate_nyan.py <github_username> --output dist/nyan.gif
 """
-
-import os
-import sys
-import argparse
-import requests
+ 
+import os, sys, argparse, random, requests
 from PIL import Image, ImageDraw
-
+ 
 # ── Layout ─────────────────────────────────────────────────────────────────────
-CELL  = 11       # contribution square size (px)
-GAP   = 2        # gap between squares
+CELL  = 11
+GAP   = 2
 S     = CELL + GAP
 WEEKS = 53
 DAYS  = 7
-
-L = 20     # left padding
-T = 30     # top padding (space for day labels)
-R = 75     # right padding (cat head overhangs here)
-B = 25     # bottom padding
-
+ 
+L = 20
+T = 40
+R = 40
+B = 40
+ 
 IMG_W = L + WEEKS * S + R
 IMG_H = T + DAYS  * S + B
-
-BG = (13, 17, 23)   # GitHub dark background
-
+ 
+BG = (13, 17, 23)
+ 
 LEVEL_COLORS = [
-    (22,  27,  34),   # 0 — no contributions
-    (14,  68,  41),   # 1 — low
-    (0,  109,  50),   # 2
-    (38, 166,  65),   # 3
-    (57, 211,  83),   # 4 — high
+    (22,  27,  34),
+    (14,  68,  41),
+    (0,  109,  50),
+    (38, 166,  65),
+    (57, 211,  83),
 ]
-
-RAINBOW = [
-    (255,   0,   0),
-    (255, 140,   0),
-    (255, 255,   0),
-    (  0, 200,   0),
-    (  0, 100, 255),
-    (180,   0, 255),
+ 
+# ── Sparkle trail ──────────────────────────────────────────────────────────────
+SPARKLE_COLORS = [
+    (255, 255, 180),  # warm yellow
+    (255, 220, 255),  # soft pink
+    (180, 230, 255),  # pale blue
+    (255, 255, 255),  # white
+    (220, 255, 220),  # mint
 ]
-
-# Nyan Cat colors
-CAT_GRAY   = (148, 148, 148)
-CAT_BLACK  = (  0,   0,   0)
-TART_BASE  = (210, 155,  84)
-TART_FROST = (255, 175, 200)
-NOSE_PINK  = (255,  90, 130)
-BLUSH      = (255, 160, 180)
-
-
+ 
+TRAIL_LEN = 35
+ 
+def draw_sparkle(draw, x, y, size, color):
+    draw.line([x, y-size, x, y+size], fill=color, width=1)
+    draw.line([x-size, y, x+size, y], fill=color, width=1)
+    d = max(1, size // 2)
+    draw.line([x-d, y-d, x+d, y+d], fill=color, width=1)
+    draw.line([x+d, y-d, x-d, y+d], fill=color, width=1)
+ 
+def draw_sparkle_trail(draw, path, head_idx):
+    start = max(0, head_idx - TRAIL_LEN)
+    rng   = random.Random(42)
+    for i in range(start, head_idx):
+        col, day = path[i]
+        cx, cy   = cell_center(col, day)
+        t     = (i - start) / max(1, TRAIL_LEN)
+        count = 1 if t < 0.4 else 2
+        for _ in range(count):
+            ox    = rng.randint(-4, 4)
+            oy    = rng.randint(-4, 4)
+            size  = max(1, int(t * 4))
+            color = rng.choice(SPARKLE_COLORS)
+            fade  = int(80 + t * 175)
+            faded = tuple(min(255, int(c * fade / 255)) for c in color)
+            draw_sparkle(draw, cx + ox, cy + oy, size, faded)
+ 
+# ── Cat head ───────────────────────────────────────────────────────────────────
+def draw_cute_cat(draw, col, day):
+    cx = L + col * S + CELL // 2
+    cy = T + day * S + CELL // 2
+    R  = 11
+ 
+    # Chubby cheeks tucked into face
+    draw.ellipse([cx-R-2, cy+2, cx-R+8, cy+11], fill=(222, 212, 212))
+    draw.ellipse([cx+R-8, cy+2, cx+R+2, cy+11], fill=(222, 212, 212))
+ 
+    # Head
+    draw.ellipse([cx-R, cy-R, cx+R, cy+R], fill=(215,215,215), outline=(0,0,0), width=1)
+ 
+    # Ears
+    draw.polygon([(cx-R+1, cy-R+3), (cx-R-1, cy-R-7), (cx-R+8, cy-R+1)],
+                 fill=(215,215,215), outline=(0,0,0))
+    draw.polygon([(cx+R-1, cy-R+3), (cx+R+1, cy-R-7), (cx+R-8, cy-R+1)],
+                 fill=(215,215,215), outline=(0,0,0))
+    draw.polygon([(cx-R+2, cy-R+2), (cx-R,   cy-R-4), (cx-R+6, cy-R+1)], fill=(255,160,185))
+    draw.polygon([(cx+R-2, cy-R+2), (cx+R,   cy-R-4), (cx+R-6, cy-R+1)], fill=(255,160,185))
+ 
+    # Eyes with shine
+    draw.ellipse([cx-7, cy-5, cx-1, cy+2], fill=(30,30,30))
+    draw.ellipse([cx+1, cy-5, cx+7, cy+2], fill=(30,30,30))
+    draw.ellipse([cx-6, cy-4, cx-4, cy-2], fill=(255,255,255))
+    draw.ellipse([cx+2, cy-4, cx+4, cy-2], fill=(255,255,255))
+ 
+    # Blush
+    draw.ellipse([cx-R+1, cy+3, cx-R+8, cy+8], fill=(255,175,192))
+    draw.ellipse([cx+R-8, cy+3, cx+R-1, cy+8], fill=(255,175,192))
+ 
+    # Nose
+    draw.ellipse([cx-2, cy+2, cx+2, cy+5], fill=(255,110,145))
+ 
+    # Mouth
+    draw.line([cx-4, cy+7, cx-1, cy+5], fill=(80,80,80), width=1)
+    draw.line([cx-1, cy+5, cx+1, cy+7], fill=(80,80,80), width=1)
+    draw.line([cx+1, cy+7, cx+4, cy+5], fill=(80,80,80), width=1)
+ 
+    # Whiskers
+    draw.line([cx-R-5, cy+1, cx-R+3, cy+3], fill=(160,160,160), width=1)
+    draw.line([cx-R-5, cy+5, cx-R+3, cy+5], fill=(160,160,160), width=1)
+    draw.line([cx+R-3, cy+3, cx+R+5, cy+1], fill=(160,160,160), width=1)
+    draw.line([cx+R-3, cy+5, cx+R+5, cy+5], fill=(160,160,160), width=1)
+ 
 # ── GitHub GraphQL API ─────────────────────────────────────────────────────────
 GQL = """
 query($login: String!) {
@@ -75,9 +134,8 @@ query($login: String!) {
   }
 }
 """
-
+ 
 def fetch_grid(username: str, token: str) -> list:
-    """Fetch contributions and return grid[week][day] with level 0–4."""
     resp = requests.post(
         "https://api.github.com/graphql",
         json={"query": GQL, "variables": {"login": username}},
@@ -85,237 +143,113 @@ def fetch_grid(username: str, token: str) -> list:
         timeout=15,
     )
     resp.raise_for_status()
-
     weeks_raw = (
         resp.json()["data"]["user"]
                    ["contributionsCollection"]
                    ["contributionCalendar"]["weeks"]
     )
-
     grid = []
     for week in weeks_raw[:WEEKS]:
         row = [0] * DAYS
         for day in week["contributionDays"]:
             c  = day["contributionCount"]
-            wd = day["weekday"]   # 0=Sunday … 6=Saturday
-            row[wd] = 0 if c == 0 else 1 if c <= 3 else 2 if c <= 6 else 3 if c <= 9 else 4
+            wd = day["weekday"]
+            row[wd] = 0 if c==0 else 1 if c<=3 else 2 if c<=6 else 3 if c<=9 else 4
         grid.append(row)
-
-    # Pad to full WEEKS if the year hasn't finished yet
     while len(grid) < WEEKS:
         grid.append([0] * DAYS)
-
     return grid
-
-
-# ── Snake path (column-by-column boustrophedon) ───────────────────────────────
+ 
+# ── Snake path ─────────────────────────────────────────────────────────────────
 def make_path() -> list:
-    """Returns list of (col, day) tuples in traversal order."""
     path = []
     for col in range(WEEKS):
         days = range(DAYS) if col % 2 == 0 else range(DAYS - 1, -1, -1)
         for day in days:
             path.append((col, day))
     return path
-
-
-# ── Coordinate helpers ─────────────────────────────────────────────────────────
+ 
+# ── Rendering helpers ──────────────────────────────────────────────────────────
 def cell_topleft(col, day):
     return L + col * S, T + day * S
-
+ 
 def cell_center(col, day):
     x, y = cell_topleft(col, day)
     return x + CELL // 2, y + CELL // 2
-
-
-# ── Draw contribution grid ─────────────────────────────────────────────────────
-def draw_grid(draw: ImageDraw.ImageDraw, grid: list, eaten: set):
+ 
+def draw_grid(draw, grid, eaten):
     for col in range(WEEKS):
         for day in range(DAYS):
             x, y  = cell_topleft(col, day)
             color = LEVEL_COLORS[0] if (col, day) in eaten else LEVEL_COLORS[grid[col][day]]
             draw.rectangle([x, y, x + CELL - 1, y + CELL - 1], fill=color)
-
-
-# ── Draw rainbow trail ─────────────────────────────────────────────────────────
-TRAIL_LEN = 28   # how many past cells show rainbow
-
-def draw_rainbow_trail(draw: ImageDraw.ImageDraw, path: list, head_idx: int):
-    start = max(0, head_idx - TRAIL_LEN)
-    for i in range(start, head_idx):
-        col, day  = path[i]
-        cx, cy    = cell_center(col, day)
-        stripe_h  = 2
-        total_h   = len(RAINBOW) * stripe_h
-        for r_idx, rc in enumerate(RAINBOW):
-            ry = cy - total_h // 2 + r_idx * stripe_h
-            draw.rectangle(
-                [cx - CELL // 2 - 1, ry, cx + CELL // 2 + 1, ry + stripe_h - 1],
-                fill=rc,
-            )
-
-
-# ── Draw Nyan Cat sprite ───────────────────────────────────────────────────────
-def draw_nyan_cat(draw: ImageDraw.ImageDraw, col: int, day: int, frame: int):
-    cx, cy = cell_center(col, day)
-
-    # — Pop tart body (centered on the cell) —
-    bx = cx - 13    # left edge of pop tart
-    by = cy - 8     # top edge of pop tart
-    bw = 26         # width
-    bh = 16         # height
-
-    # Tan base + black outline
-    draw.rectangle([bx, by, bx + bw, by + bh], fill=TART_BASE, outline=CAT_BLACK)
-    # Pink frosting
-    draw.rectangle([bx + 1, by + 1, bx + bw - 1, by + bh - 1], fill=TART_FROST)
-    # Sprinkles
-    for sx, sy, sc in [
-        (bx + 4,  by + 3,  (255,  50,  50)),
-        (bx + 11, by + 4,  ( 50, 200,  50)),
-        (bx + 18, by + 3,  ( 50, 100, 255)),
-        (bx + 7,  by + 9,  (255, 220,  50)),
-        (bx + 15, by + 9,  (255,  50, 200)),
-        (bx + 21, by + 5,  (255, 150,  50)),
-    ]:
-        draw.rectangle([sx, sy, sx + 2, sy + 1], fill=sc)
-
-    # — Cat head (to the right of pop tart) —
-    hx = bx + bw + 2
-    hy = cy - 9
-
-    # Head circle
-    draw.ellipse([hx, hy, hx + 16, hy + 16], fill=CAT_GRAY, outline=CAT_BLACK)
-
-    # Ears
-    draw.polygon(
-        [(hx + 1, hy + 2), (hx + 3, hy - 5), (hx + 7, hy + 2)],
-        fill=CAT_GRAY, outline=CAT_BLACK,
-    )
-    draw.polygon(
-        [(hx + 9, hy + 2), (hx + 13, hy - 5), (hx + 15, hy + 2)],
-        fill=CAT_GRAY, outline=CAT_BLACK,
-    )
-
-    # Eyes (Nyan Cat has closed squint lines)
-    draw.line([hx + 3,  hy + 6, hx + 6,  hy + 6], fill=CAT_BLACK, width=2)
-    draw.line([hx + 10, hy + 6, hx + 13, hy + 6], fill=CAT_BLACK, width=2)
-
-    # Nose
-    draw.ellipse([hx + 6, hy + 9, hx + 9, hy + 12], fill=NOSE_PINK)
-
-    # Mouth (little w shape)
-    draw.line([hx + 4,  hy + 14, hx + 6,  hy + 12], fill=CAT_BLACK)
-    draw.line([hx + 6,  hy + 12, hx + 8,  hy + 14], fill=CAT_BLACK)
-    draw.line([hx + 8,  hy + 14, hx + 10, hy + 12], fill=CAT_BLACK)
-    draw.line([hx + 10, hy + 12, hx + 12, hy + 14], fill=CAT_BLACK)
-
-    # Cheek blush
-    draw.ellipse([hx + 1,  hy + 9,  hx + 4,  hy + 11], fill=BLUSH)
-    draw.ellipse([hx + 12, hy + 9,  hx + 15, hy + 11], fill=BLUSH)
-
-    # — Legs (4 legs, 2-frame walk cycle) —
-    leg_positions = [bx + 3, bx + 9, bx + 15, bx + 21]
-    for i, lx in enumerate(leg_positions):
-        bob = 3 if (i + frame) % 2 == 0 else 0
-        draw.rectangle(
-            [lx, by + bh + bob, lx + 3, by + bh + 5 + bob],
-            fill=CAT_GRAY, outline=CAT_BLACK,
-        )
-
-    # — Tail (wiggles every other frame) —
-    wave = 3 if frame % 2 == 0 else -3
-    draw.line(
-        [(bx - 2, cy), (bx - 5, cy + wave), (bx - 9, cy), (bx - 12, cy - wave)],
-        fill=CAT_GRAY, width=3,
-    )
-
-
-# ── Generate all frames and save as GIF ───────────────────────────────────────
-CELLS_PER_FRAME = 2   # cells eaten per frame — lower = slower/smoother, higher = faster
-
+ 
+def draw_stars(draw, seed):
+    rng = random.Random(seed)
+    for _ in range(20):
+        sx = rng.randint(0, IMG_W - 1)
+        sy = rng.randint(0, IMG_H - 1)
+        br = rng.choice([100, 150, 200, 240])
+        sz = rng.choice([1, 1, 2])
+        draw.rectangle([sx, sy, sx+sz-1, sy+sz-1], fill=(br, br, br))
+ 
+# ── GIF generation ─────────────────────────────────────────────────────────────
+CELLS_PER_FRAME = 2
+ 
 def generate_gif(grid: list, output_path: str):
     path   = make_path()
     frames = []
     eaten  = set()
-
+ 
     for i in range(0, len(path), CELLS_PER_FRAME):
-        # Advance the snake
         for j in range(CELLS_PER_FRAME):
             if i + j < len(path):
                 eaten.add(path[i + j])
-
-        head_idx       = min(i + CELLS_PER_FRAME - 1, len(path) - 1)
+ 
+        head_idx           = min(i + CELLS_PER_FRAME - 1, len(path) - 1)
         head_col, head_day = path[head_idx]
-
+ 
         img  = Image.new("RGB", (IMG_W, IMG_H), BG)
         draw = ImageDraw.Draw(img)
-
+ 
+        draw_stars(draw, (i // CELLS_PER_FRAME) % 10)
         draw_grid(draw, grid, eaten)
-        draw_rainbow_trail(draw, path, head_idx)
-        draw_nyan_cat(draw, head_col, head_day, i // CELLS_PER_FRAME)
-
+        draw_sparkle_trail(draw, path, head_idx)
+        draw_cute_cat(draw, head_col, head_day)
+ 
         frames.append(img)
-
+ 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     print(f"  Saving {len(frames)} frames → {output_path}")
-
     frames[0].save(
         output_path,
         save_all=True,
         append_images=frames[1:],
         loop=0,
-        duration=60,    # ms per frame
+        duration=60,
         optimize=False,
     )
-
-    size_kb = os.path.getsize(output_path) // 1024
-    print(f"  Done! {output_path} ({size_kb} KB)")
-
-
-# ── CLI entry point ────────────────────────────────────────────────────────────
+    print(f"  Done! ({os.path.getsize(output_path) // 1024} KB)")
+ 
+# ── CLI ────────────────────────────────────────────────────────────────────────
 def main():
-    parser = argparse.ArgumentParser(
-        description="Nyan Cat eats your GitHub contributions!",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python generate_nyan.py PihuPihuPihu
-  python generate_nyan.py PihuPihuPihu --output dist/nyan.gif
-
-Token setup:
-  export GITHUB_TOKEN=ghp_your_token_here
-  # OR pass --token ghp_your_token_here
-        """,
-    )
-    parser.add_argument("username", help="GitHub username")
-    parser.add_argument(
-        "--token", "-t",
-        default=os.getenv("GITHUB_TOKEN"),
-        help="GitHub personal access token (or set GITHUB_TOKEN env var)",
-    )
-    parser.add_argument(
-        "--output", "-o",
-        default="nyan.gif",
-        help="Output GIF path (default: nyan.gif)",
-    )
+    parser = argparse.ArgumentParser(description="Sparkle cat eats your GitHub contributions!")
+    parser.add_argument("username")
+    parser.add_argument("--token", "-t", default=os.getenv("GITHUB_TOKEN"))
+    parser.add_argument("--output", "-o", default="nyan.gif")
     args = parser.parse_args()
-
+ 
     if not args.token:
-        print("Error: GitHub token is required.")
-        print("  export GITHUB_TOKEN=ghp_your_token_here")
-        print("  or: python generate_nyan.py <user> --token ghp_...")
+        print("Error: set GITHUB_TOKEN or pass --token")
         sys.exit(1)
-
+ 
     print(f"Fetching contributions for @{args.username}...")
     grid = fetch_grid(args.username, args.token)
-
-    filled = sum(grid[col][day] > 0 for col in range(WEEKS) for day in range(DAYS))
-    print(f"  {filled} active contribution cells found")
-
+    filled = sum(grid[c][d] > 0 for c in range(WEEKS) for d in range(DAYS))
+    print(f"  {filled} active cells found")
+ 
     print("Generating animation...")
     generate_gif(grid, args.output)
-
-
+ 
 if __name__ == "__main__":
     main()
