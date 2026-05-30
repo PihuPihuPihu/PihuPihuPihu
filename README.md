@@ -25,9 +25,10 @@ I'd love to connect 🤍
 
 ### My Contribution Snake
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../output/github-contribution-grid-snake-dark.svg">
-  <img alt="github contribution grid snake" src="../output/github-contribution-grid-snake.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="../output/github-contribution-grid-snake-dark.svg?v=2">
+  <img alt="github contribution grid snake" src="../output/github-contribution-grid-snake.svg?v=2">
 </picture>
+
 
 
 <!-- Proudly created with GPRM ( https://gprm.itsvg.in ) -->
