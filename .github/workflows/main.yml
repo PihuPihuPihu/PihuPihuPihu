@@ -5,20 +5,24 @@ on:
     - cron: "0 */12 * * *" # Runs every 12 hours
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - uses: Platane/snk@v3
         id: snake-gif
         with:
           github_user_name: ${{ github.repository_owner }}
           outputs: |
-            dist/github-contribution-grid-snake.svg
-            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+            dist/github-contribution-grid-snake.svg?color_snake=#ffb7c5&color_dots=#fff0f5,#ffdae0,#ffb7c5,#ff94a4,#e65c7b
+            dist/github-contribution-grid-snake-dark.svg?color_snake=#ff94a4&color_dots=#2d1e22,#4a2831,#733544,#a64459,#e65c7b
 
-      - uses: crazy-max/ghaction-github-pages@v3
+      - uses: crazy-max/ghaction-github-pages@v4
         with:
           target_branch: output
           build_dir: dist
