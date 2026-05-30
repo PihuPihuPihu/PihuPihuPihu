@@ -25,12 +25,20 @@ I'd love to connect 🤍
 
 ### 🌸 My Sakura Cat Space
 <div align="center">
+  <!-- This generates a beautiful pink header card with your username -->
   <img src="https://vercel.app" />
 </div>
 
-<!-- This puts an animated running pixel cat right under your header -->
 <div align="center">
-  <img src="https://giphy.com" width="150" alt="Cute running cat">
+  <!-- This is the actual direct link to the animated walking pixel cat -->
+  <img src="https://giphy.com" width="120" alt="Cute running cat">
+</div>
+
+<br />
+
+<div align="center">
+  <!-- This loads your custom sakura-themed GitHub statistics tracking card -->
+  <img src="https://vercel.app" alt="Pihu's GitHub Stats" />
 </div>
 
 
