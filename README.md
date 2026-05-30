@@ -30,7 +30,7 @@ I'd love to connect 🤍
   <img src="./stars-rainbows.gif" width="150" alt="Cute Sakura Cat Grid">
 </div>
 
-![Nyan Cat](https://raw.githubusercontent.com/PihuPihuPihu/PihuPihuPihu/output/nyan.gif)
+![Sparkle Cat](https://raw.githubusercontent.com/PihuPihuPihu/PihuPihuPihu/output/nyan.gif)
 
 
 
