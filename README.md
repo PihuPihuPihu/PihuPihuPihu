@@ -30,13 +30,7 @@ I'd love to connect 🤍
   <img src="./stars-rainbows.gif" width="150" alt="Cute Sakura Cat Grid">
 </div>
 
-<br />
-
-<div align="center">
-  <!-- Your matching sakura analytics tracker card -->
-  <img src="https://vercel.app" alt="Pihu's GitHub Stats" />
-</div>
-
+![Nyan Cat](https://raw.githubusercontent.com/PihuPihuPihu/PihuPihuPihu/output/nyan.gif)
 
 
 
